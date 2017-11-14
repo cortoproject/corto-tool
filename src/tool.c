@@ -25,7 +25,7 @@ static int runCommand(char *cmd, int argc, char *argv[]) {
     /* If a command is found, run the command with remaining args */
     corto_id package;
     sprintf(package, "driver/tool/%s", cmd);
-    return corto_run(package, argc, argv);    
+    return corto_run(package, argc, argv);
 }
 
 static int loadArguments(int argc, char* argv[]) {
@@ -62,10 +62,10 @@ static void printUsage(void) {
     printf("  -h,--help                  Display this usage information\n");
     printf("\n");
     printf("  version and logo:\n");
-    printf("  --patch                    Display major.minor.patch version\n");    
+    printf("  --patch                    Display major.minor.patch version\n");
     printf("  --minor                    Display major.minor version\n");
     printf("  --major                    Display major version\n");
-    printf("  -v                         Same as --patch\n");    
+    printf("  -v                         Same as --patch\n");
     printf("  --version                  Display current version and build\n");
     printf("  --logo                     Display logo\n");
     printf("\n");
@@ -76,6 +76,7 @@ static void printUsage(void) {
     printf("  configuration:\n");
     printf("  --name [id]                Assign a name to the process\n");
     printf("  --config [path]            A path or file that contains configuration\n");
+    printf("  --cwd [path]               Specify the current working directory\n");
     printf("\n");
     printf("  tracing:\n");
     printf("  --debug                    Set verbosity to DEBUG\n");
@@ -85,6 +86,8 @@ static void printUsage(void) {
     printf("  --info                     Set verbosity to INFO\n");
     printf("  --warning                  Set verbosity to WARNING\n");
     printf("  --error                    Set verbosity to ERROR\n");
+    printf("  --show-lines               Show linenumbers of log messages\n");
+    printf("  --show-time                Show time of log messages\n");
     printf("  --mute                     Mute errors from loaded packages\n");
     printf("  --backtrace                Enable backtraces for tracing\n");
     printf("  --trace-object [id]        Trace operations for specified object\n");
@@ -110,15 +113,18 @@ static bool load = false;
 static bool keep_alive = false;
 static bool mute = false;
 static char *appname;
+static char *cwd;
+static bool showLines = false;
+static bool showTime = false;
 
 static void printVersion(bool minor, bool patch) {
     if (patch) {
-        printf("%s.%s.%s\n", CORTO_VERSION_MAJOR, CORTO_VERSION_MINOR, CORTO_VERSION_PATCH);    
+        printf("%s.%s.%s\n", CORTO_VERSION_MAJOR, CORTO_VERSION_MINOR, CORTO_VERSION_PATCH);
     } else
     if (minor) {
-        printf("%s.%s\n", CORTO_VERSION_MAJOR, CORTO_VERSION_MINOR);        
+        printf("%s.%s\n", CORTO_VERSION_MAJOR, CORTO_VERSION_MINOR);
     } else {
-        printf("%s\n", CORTO_VERSION_MAJOR);                
+        printf("%s\n", CORTO_VERSION_MAJOR);
     }
 }
 
@@ -148,16 +154,19 @@ static int parseGenericArgs(int argc, char *argv[]) {
             PARSE_OPTION(0, "logo", printLogo());
             PARSE_OPTION(0, "name", appname = argv[i + 1]; i ++);
             PARSE_OPTION(0, "config", corto_setenv("CORTO_CONFIG", argv[i + 1]); i ++);
+            PARSE_OPTION(0, "cwd", cwd = argv[i + 1]; i ++);
             PARSE_OPTION(0, "debug", corto_log_verbositySet(CORTO_DEBUG));
             PARSE_OPTION(0, "trace", corto_log_verbositySet(CORTO_TRACE));
             PARSE_OPTION(0, "ok", corto_log_verbositySet(CORTO_OK));
             PARSE_OPTION(0, "info", corto_log_verbositySet(CORTO_INFO));
             PARSE_OPTION(0, "warning", corto_log_verbositySet(CORTO_WARNING));
             PARSE_OPTION(0, "error", corto_log_verbositySet(CORTO_ERROR));
+            PARSE_OPTION(0, "show-lines", showLines = true);
+            PARSE_OPTION(0, "show-time", showTime = true);
             PARSE_OPTION(0, "mute", mute = true);
             PARSE_OPTION(0, "backtrace", CORTO_BACKTRACE_ENABLED = true);
             PARSE_OPTION(0, "trace-object", CORTO_TRACE_OBJECT = argv[i + 1]; i ++);
-            
+
             if (!parsed) {
                 fprintf(stderr, "unknown option '%s' (use corto --help to see available options)\n", argv[i]);
                 return -1;
@@ -178,6 +187,22 @@ int main(int argc, char *argv[]) {
     /* Parse arguments before first command. Any arguments after the first
      * command or file are passed to that file or command. */
     int last_parsed = parseGenericArgs(argc - 1, &argv[1]);
+
+    if (showLines) {
+        corto_log_fmt(
+            strarg("%s %s",
+                "%f:%l",
+                corto_log_fmtGet())
+        );
+    }
+
+    if (showTime) {
+        corto_log_fmt(
+            strarg("%s %s",
+                "%T",
+                corto_log_fmtGet())
+        );
+    }
 
     /* If arguments are invalid, don't bother starting corto */
     if (last_parsed != -1) {
@@ -224,7 +249,7 @@ int main(int argc, char *argv[]) {
         if (result) {
             corto_throw("command '%s' failed", cmd);
             corto_raise();
-        }        
+        }
 
         if (keep_alive) {
             while (true) {
@@ -238,5 +263,5 @@ int main(int argc, char *argv[]) {
         result = -1;
     }
 
-    return result;    
+    return result;
 }
