@@ -1,4 +1,4 @@
-/* Copyright (c) 2010-2017 the corto developers
+/* Copyright (c) 2010-2018 the corto developers
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -86,8 +86,14 @@ static void printUsage(void) {
     printf("  --info                     Set verbosity to INFO\n");
     printf("  --warning                  Set verbosity to WARNING\n");
     printf("  --error                    Set verbosity to ERROR\n");
+    printf("  --exit-on-exception        Exit program on exception\n");
+    printf("  --abort-on-exception       Abort program on exception\n");
+    printf("  --profile                  Enable profiling\n");
+    printf("  --mono                     Disable colors\n");
     printf("  --show-lines               Show linenumbers of log messages\n");
     printf("  --show-time                Show time of log messages\n");
+    printf("  --show-delta               Show time delta between log messages\n");
+    printf("  --show-proc                Show process id\n");
     printf("  --mute                     Mute errors from loaded packages\n");
     printf("  --backtrace                Enable backtraces for tracing\n");
     printf("  --trace-object [id]        Trace operations for specified object\n");
@@ -116,21 +122,24 @@ static char *appname;
 static char *cwd;
 static bool showLines = false;
 static bool showTime = false;
+static bool showDelta = false;
+static bool showProc = false;
+static bool profile = false;
 
 static void printVersion(bool minor, bool patch) {
     if (patch) {
-        printf("%s.%s.%s\n", CORTO_VERSION_MAJOR, CORTO_VERSION_MINOR, CORTO_VERSION_PATCH);
+        printf("%s.%s.%s\n", BAKE_VERSION_MAJOR, BAKE_VERSION_MINOR, BAKE_VERSION_PATCH);
     } else
     if (minor) {
-        printf("%s.%s\n", CORTO_VERSION_MAJOR, CORTO_VERSION_MINOR);
+        printf("%s.%s\n", BAKE_VERSION_MAJOR, BAKE_VERSION_MINOR);
     } else {
-        printf("%s\n", CORTO_VERSION_MAJOR);
+        printf("%s\n", BAKE_VERSION_MAJOR);
     }
 }
 
 static void printLongVersion(void) {
     printf("corto version %s (%s)\n  library: %s (%s)\n",
-        CORTO_VERSION,
+        BAKE_VERSION,
         CORTO_PLATFORM_STRING,
         corto_getLibrary(),
         corto_getBuild());
@@ -161,8 +170,14 @@ static int parseGenericArgs(int argc, char *argv[]) {
             PARSE_OPTION(0, "info", corto_log_verbositySet(CORTO_INFO));
             PARSE_OPTION(0, "warning", corto_log_verbositySet(CORTO_WARNING));
             PARSE_OPTION(0, "error", corto_log_verbositySet(CORTO_ERROR));
+            PARSE_OPTION(0, "exit-on-exception", corto_log_setExceptionAction(CORTO_LOG_ON_EXCEPTION_EXIT));
+            PARSE_OPTION(0, "abort-on-exception", corto_log_setExceptionAction(CORTO_LOG_ON_EXCEPTION_ABORT));
+            PARSE_OPTION(0, "profile", profile = true);
+            PARSE_OPTION(0, "mono", corto_log_useColors(false));
             PARSE_OPTION(0, "show-lines", showLines = true);
             PARSE_OPTION(0, "show-time", showTime = true);
+            PARSE_OPTION(0, "show-delta", showDelta = true);
+            PARSE_OPTION(0, "show-proc", showProc = true);
             PARSE_OPTION(0, "mute", mute = true);
             PARSE_OPTION(0, "backtrace", CORTO_BACKTRACE_ENABLED = true);
             PARSE_OPTION(0, "trace-object", CORTO_TRACE_OBJECT = argv[i + 1]; i ++);
@@ -189,19 +204,31 @@ int main(int argc, char *argv[]) {
     int last_parsed = parseGenericArgs(argc - 1, &argv[1]);
 
     if (showLines) {
-        corto_log_fmt(
-            strarg("%s %s",
-                "%f:%l",
-                corto_log_fmtGet())
-        );
+        char *fmt = corto_asprintf("%s %s", "%f:%l", corto_log_fmtGet());
+        corto_log_fmt(fmt);
+        free(fmt);
     }
 
     if (showTime) {
-        corto_log_fmt(
-            strarg("%s %s",
-                "%T",
-                corto_log_fmtGet())
-        );
+        char *fmt = corto_asprintf("%s %s", "%T", corto_log_fmtGet());
+        corto_log_fmt(fmt);
+        free(fmt);
+    }
+
+    if (showDelta) {
+        char *fmt = corto_asprintf("%s %s", "%d", corto_log_fmtGet());
+        corto_log_fmt(fmt);
+        free(fmt);
+    }
+
+    if (showProc) {
+        char *fmt = corto_asprintf("%s %s", "%A", corto_log_fmtGet());
+        corto_log_fmt(fmt);
+        free(fmt);
+    }
+
+    if (profile) {
+        corto_log_profile(true);
     }
 
     /* If arguments are invalid, don't bother starting corto */
@@ -227,7 +254,7 @@ int main(int argc, char *argv[]) {
                 sprintf(package, "driver/tool/%s", cur_args[0]);
                 char *lib;
                 cmd = cur_args[0];
-                if ((lib = corto_locate(package, NULL, CORTO_LOCATION_LIB))) {
+                if (!strchr(package, '.') && package[0] != '/' && (lib = corto_locate(package, NULL, CORTO_LOCATION_LIB))) {
                     result = runCommand(cur_args[0], cur_count, cur_args);
                     free(lib);
                 } else {
