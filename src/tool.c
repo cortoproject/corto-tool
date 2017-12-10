@@ -31,7 +31,7 @@ static int runCommand(char *cmd, int argc, char *argv[]) {
 static int loadArguments(int argc, char* argv[]) {
     int i;
     for (i = 0; i < argc; i++) {
-        if (corto_load(argv[i], 0, NULL)) {
+        if (corto_use(argv[i], 0, NULL)) {
             return i + 1;
         }
     }
@@ -247,7 +247,7 @@ int main(int argc, char *argv[]) {
             /* If load is set, only load a single package/file, and pass all
              * remaining arguments to this file */
             if (load) {
-                result = corto_load(cur_args[0], cur_count, cur_args);
+                result = corto_use(cur_args[0], cur_count, cur_args);
             } else {
                 /* Test if current argument is a command */
                 corto_id package;
