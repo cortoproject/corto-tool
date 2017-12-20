@@ -138,11 +138,10 @@ static void printVersion(bool minor, bool patch) {
 }
 
 static void printLongVersion(void) {
-    printf("corto version %s (%s)\n  library: %s (%s)\n",
+    printf("corto version %s (%s)\n  build: %s\n",
         BAKE_VERSION,
         CORTO_PLATFORM_STRING,
-        corto_getLibrary(),
-        corto_getBuild());
+        corto_get_build());
 }
 
 static int parseGenericArgs(int argc, char *argv[]) {
