@@ -251,11 +251,10 @@ int main(int argc, char *argv[]) {
                 /* Test if current argument is a command */
                 corto_id package;
                 sprintf(package, "driver/tool/%s", cur_args[0]);
-                char *lib;
+                const char *lib = NULL;
                 cmd = cur_args[0];
-                if (!strchr(package, '.') && package[0] != '/' && (lib = corto_locate(package, NULL, CORTO_LOCATION_LIB))) {
+                if (!strchr(package, '.') && package[0] != '/' && (lib = corto_locate(package, NULL, CORTO_LOCATE_LIB))) {
                     result = runCommand(cur_args[0], cur_count, cur_args);
-                    free(lib);
                 } else {
                     /* If not a command, load subsequent arguments */
                     result = loadArguments(cur_count, cur_args);
