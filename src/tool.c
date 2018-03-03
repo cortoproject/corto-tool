@@ -181,7 +181,7 @@ static int parseGenericArgs(int argc, char *argv[]) {
             PARSE_OPTION(0, "show-delta", showDelta = true);
             PARSE_OPTION(0, "show-proc", showProc = true);
             PARSE_OPTION(0, "mute", mute = true);
-            PARSE_OPTION(0, "backtrace", CORTO_BACKTRACE_ENABLED = true);
+            PARSE_OPTION(0, "backtrace", CORTO_LOG_BACKTRACE = true);
             PARSE_OPTION(0, "trace-mem", CORTO_TRACE_MEM = true);
             PARSE_OPTION(0, "collect-cycles", CORTO_COLLECT_CYCLES = true);
 
