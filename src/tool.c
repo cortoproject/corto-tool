@@ -96,7 +96,10 @@ static void printUsage(void) {
     printf("  --show-proc                Show process id\n");
     printf("  --mute                     Mute errors from loaded packages\n");
     printf("  --backtrace                Enable backtraces for tracing\n");
-    printf("  --trace-object [id]        Trace operations for specified object\n");
+    printf("\n");
+    printf("  memory management:\n");
+    printf("  --trace-mem                Trace memory operations\n");
+    printf("  --collect-cycles                Trace memory operations\n");
 }
 
 #define PARSE_OPTION(short, long, action)\
@@ -179,7 +182,8 @@ static int parseGenericArgs(int argc, char *argv[]) {
             PARSE_OPTION(0, "show-proc", showProc = true);
             PARSE_OPTION(0, "mute", mute = true);
             PARSE_OPTION(0, "backtrace", CORTO_BACKTRACE_ENABLED = true);
-            PARSE_OPTION(0, "trace-object", CORTO_TRACE_OBJECT = argv[i + 1]; i ++);
+            PARSE_OPTION(0, "trace-mem", CORTO_TRACE_MEM = true);
+            PARSE_OPTION(0, "collect-cycles", CORTO_COLLECT_CYCLES = true);
 
             if (!parsed) {
                 fprintf(stderr, "unknown option '%s' (use corto --help to see available options)\n", argv[i]);
