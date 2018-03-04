@@ -99,7 +99,8 @@ static void printUsage(void) {
     printf("\n");
     printf("  memory management:\n");
     printf("  --trace-mem                Trace memory operations\n");
-    printf("  --collect-cycles                Trace memory operations\n");
+    printf("  --collect-cycles           Collect reference cycles\n");
+    printf("  --collect-tls              Cleanup TLS in mainthread. Process always exits with 0\n");
 }
 
 #define PARSE_OPTION(short, long, action)\
@@ -184,6 +185,7 @@ static int parseGenericArgs(int argc, char *argv[]) {
             PARSE_OPTION(0, "backtrace", CORTO_LOG_BACKTRACE = true);
             PARSE_OPTION(0, "trace-mem", CORTO_TRACE_MEM = true);
             PARSE_OPTION(0, "collect-cycles", CORTO_COLLECT_CYCLES = true);
+            PARSE_OPTION(0, "collect-tls", CORTO_COLLECT_TLS = true);
 
             if (!parsed) {
                 fprintf(stderr, "unknown option '%s' (use corto --help to see available options)\n", argv[i]);
