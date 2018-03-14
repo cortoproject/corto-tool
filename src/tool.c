@@ -243,6 +243,11 @@ int main(int argc, char *argv[]) {
         /* Start corto */
         corto_start(appname);
 
+        /* Load configuration (if CORTO_CONFIG is set) */
+        if (corto_load_config()) {
+            return -1;
+        }
+
         /* If there are more arguments than that have been parsed so far, there must
          * be a command or file to be loaded */
         if (argc > last_parsed) {

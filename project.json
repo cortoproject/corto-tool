@@ -3,8 +3,8 @@
     "type": "tool",
     "value": {
         "author": "Sander Mertens",
-        "description": "Base executable for corto tools (found in driver/tool)",
-        "version": "1.0.0",         
+        "description": "Base executable for corto tools",
+        "version": "1.0.0",
         "use": ["corto"],
         "managed": false
     }
