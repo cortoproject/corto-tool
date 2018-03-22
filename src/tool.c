@@ -73,6 +73,11 @@ static void printUsage(void) {
     printf("  -l,--load [file/package]   Pass all subsequent arguments to specified file/package\n");
     printf("  -a,--keep-alive            Keep corto running after command is executed\n");
     printf("\n");
+    printf("  security:\n");
+    printf("  --force-security           Fail if no secure/lock is configured.\n");
+    printf("  --username                 Provide username for logging in.\n");
+    printf("  --password                 Provide password for logging in.\n");
+    printf("\n");
     printf("  configuration:\n");
     printf("  --name [id]                Assign a name to the process\n");
     printf("  --config [path]            A path or file that contains configuration\n");
@@ -129,6 +134,9 @@ static bool showTime = false;
 static bool showDelta = false;
 static bool showProc = false;
 static bool profile = false;
+static bool force_security = false;
+static char *username;
+static char *password;
 
 static void printVersion(bool minor, bool patch) {
     if (patch) {
@@ -166,6 +174,9 @@ static int parseGenericArgs(int argc, char *argv[]) {
             PARSE_OPTION(0, "logo", printLogo());
             PARSE_OPTION(0, "name", appname = argv[i + 1]; i ++);
             PARSE_OPTION(0, "config", corto_setenv("CORTO_CONFIG", argv[i + 1]); i ++);
+            PARSE_OPTION(0, "force-security", force_security = true);
+            PARSE_OPTION(0, "username", username = argv[i + 1]; i ++);
+            PARSE_OPTION(0, "password", password = argv[i + 1]; i ++);
             PARSE_OPTION(0, "cwd", cwd = argv[i + 1]; i ++);
             PARSE_OPTION(0, "debug", corto_log_verbositySet(CORTO_DEBUG));
             PARSE_OPTION(0, "trace", corto_log_verbositySet(CORTO_TRACE));
@@ -248,6 +259,27 @@ int main(int argc, char *argv[]) {
             return -1;
         }
 
+        /* After loading configuration, enable security */
+        if (!corto_enable_security(true)) {
+            if (force_security) {
+                corto_throw("failed to enable security (is a lock configured?)");
+                goto error;
+            }
+        } else {
+            corto_info("security enabled");
+        }
+
+        if (username) {
+            const char *session_id = corto_login(username, password);
+            if (!session_id) {
+                corto_throw("login failed");
+                goto error;
+            } else {
+                /* Immediately activate session */
+                corto_set_session(session_id);
+            }
+        }
+
         /* If there are more arguments than that have been parsed so far, there must
          * be a command or file to be loaded */
         if (argc > last_parsed) {
@@ -300,4 +332,7 @@ int main(int argc, char *argv[]) {
     }
 
     return result;
+error:
+    corto_stop();
+    return -1;
 }
