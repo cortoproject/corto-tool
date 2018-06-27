@@ -251,6 +251,10 @@ int main(int argc, char *argv[]) {
     if (last_parsed != -1) {
         char *cmd = "unknown";
 
+        if (keep_alive) {
+            corto_setenv("CORTO_KEEP_ALIVE", "true");
+        }
+
         /* Start corto */
         corto_start(appname);
 
@@ -315,7 +319,7 @@ int main(int argc, char *argv[]) {
         }
 
         if (result) {
-            corto_throw("command '%s' failed", cmd);
+            corto_throw("errors occurred while loading '%s'", cmd);
             corto_raise();
         }
 
