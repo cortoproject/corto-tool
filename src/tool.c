@@ -86,11 +86,8 @@ static void printUsage(void) {
     printf("  tracing:\n");
     printf("  --debug                    Set verbosity to DEBUG\n");
     printf("  --trace                    Set verbosity to TRACE\n");
-    printf("  --ok                       Set verbosity to OK\n");
-    printf("  --log                      Set verbosity to LOG\n");
-    printf("  --info                     Set verbosity to INFO\n");
-    printf("  --warning                  Set verbosity to WARNING\n");
-    printf("  --error                    Set verbosity to ERROR\n");
+    printf("  --verbosity                Set verbosity level (DEBUG, TRACE, OK, INFO, WARNING, ERROR, CRITICAL)\n");
+    printf("  --log-depth                Set verbosity depth\n");
     printf("  --exit-on-exception        Exit program on exception\n");
     printf("  --abort-on-exception       Abort program on exception\n");
     printf("  --profile                  Enable profiling\n");
@@ -156,6 +153,30 @@ static void printLongVersion(void) {
         corto_get_build());
 }
 
+static void set_verbosity(const char *verbosity) {
+    if (!verbosity) {
+        return;
+    }
+
+    if (!stricmp(verbosity, "DEBUG")) {
+        corto_log_verbositySet(CORTO_DEBUG);
+    } else if (!stricmp(verbosity, "TRACE")) {
+        corto_log_verbositySet(CORTO_TRACE);
+    } else if (!stricmp(verbosity, "OK")) {
+        corto_log_verbositySet(CORTO_OK);
+    } else if (!stricmp(verbosity, "INFO")) {
+        corto_log_verbositySet(CORTO_INFO);
+    } else if (!stricmp(verbosity, "WARNING")) {
+        corto_log_verbositySet(CORTO_WARNING);
+    } else if (!stricmp(verbosity, "ERROR")) {
+        corto_log_verbositySet(CORTO_ERROR);
+    } else if (!stricmp(verbosity, "CRITICAL")) {
+        corto_log_verbositySet(CORTO_CRITICAL);
+    } else {
+        printf("not a valid verbosity level '%s'\n", verbosity);
+    }
+}
+
 static int parseGenericArgs(int argc, char *argv[]) {
     int i;
     bool parsed;
@@ -165,7 +186,6 @@ static int parseGenericArgs(int argc, char *argv[]) {
         if (argv[i][0] == '-') {
             PARSE_OPTION('l', "load", load = true; i ++; break);
             PARSE_OPTION('a', "keep-alive", keep_alive = true);
-            PARSE_OPTION('v', NULL, printVersion(true, true));
             PARSE_OPTION(0, "patch", printVersion(true, true));
             PARSE_OPTION(0, "minor", printVersion(true, false));
             PARSE_OPTION(0, "major", printVersion(false, false));
@@ -180,10 +200,8 @@ static int parseGenericArgs(int argc, char *argv[]) {
             PARSE_OPTION(0, "cwd", cwd = argv[i + 1]; i ++);
             PARSE_OPTION(0, "debug", corto_log_verbositySet(CORTO_DEBUG));
             PARSE_OPTION(0, "trace", corto_log_verbositySet(CORTO_TRACE));
-            PARSE_OPTION(0, "ok", corto_log_verbositySet(CORTO_OK));
-            PARSE_OPTION(0, "info", corto_log_verbositySet(CORTO_INFO));
-            PARSE_OPTION(0, "warning", corto_log_verbositySet(CORTO_WARNING));
-            PARSE_OPTION(0, "error", corto_log_verbositySet(CORTO_ERROR));
+            PARSE_OPTION('v', "verbosity", set_verbosity(argv[i + 1]); i ++);
+            PARSE_OPTION(0, "log-depth", corto_log_verbositySetDepth(atoi(argv[i + 1])); i ++);
             PARSE_OPTION(0, "exit-on-exception", corto_log_setExceptionAction(CORTO_LOG_ON_EXCEPTION_EXIT));
             PARSE_OPTION(0, "abort-on-exception", corto_log_setExceptionAction(CORTO_LOG_ON_EXCEPTION_ABORT));
             PARSE_OPTION(0, "profile", profile = true);
