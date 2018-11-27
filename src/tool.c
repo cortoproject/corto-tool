@@ -337,11 +337,14 @@ int main(int argc, char *argv[]) {
         }
 
         if (result) {
-            corto_throw("errors occurred while loading '%s'", cmd);
+            if (!corto_raised()) {
+                corto_throw("errors occurred while loading '%s'", cmd);
+            }
             corto_raise();
         }
 
         if (keep_alive) {
+            corto_info("Keeping process alive, press CTRL-C to exit");
             while (true) {
                 corto_sleep(1, 0);
             }
