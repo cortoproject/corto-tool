@@ -19,19 +19,19 @@
  * THE SOFTWARE.
  */
 
-#include <corto/corto.h>
+#include <corto>
 
 static int runCommand(char *cmd, int argc, char *argv[]) {
     /* If a command is found, run the command with remaining args */
     corto_id package;
     sprintf(package, "driver/tool/%s", cmd);
-    return corto_run(package, argc, argv);
+    return ut_run(package, argc, argv);
 }
 
 static int loadArguments(int argc, char* argv[]) {
     int i;
     for (i = 0; i < argc; i++) {
-        if (corto_use(argv[i], 0, NULL)) {
+        if (ut_use(argv[i], 0, NULL)) {
             return i + 1;
         }
     }
@@ -39,19 +39,19 @@ static int loadArguments(int argc, char* argv[]) {
 }
 
 static void printLogo(void) {
-    char *color1 = CORTO_GREEN, *color2 = CORTO_CYAN;
+    char *color1 = UT_GREEN, *color2 = UT_CYAN;
     printf("\n");
-    printf("            %s##########%s\n", color1, CORTO_NORMAL);
-    printf("          %s##########%s ####%s\n", color1, color2, CORTO_NORMAL);
-    printf("        %s##########%s ########%s\n", color1, color2, CORTO_NORMAL);
-    printf("      %s##########%s   ##########%s\n", color1, color2, CORTO_NORMAL);
-    printf("    %s##########%s       ##########%s\n", color1, color2, CORTO_NORMAL);
-    printf("  %s##########%s           ##########%s\n", color1, color2, CORTO_NORMAL);
-    printf("   %s##########%s         ##########%s\n", color1, color2, CORTO_NORMAL);
-    printf("     %s##########%s     ##########%s\n", color1, color2, CORTO_NORMAL);
-    printf("       %s##########%s ##########%s\n", color1, color2, CORTO_NORMAL);
-    printf("         %s######%s ##########%s\n", color1, color2, CORTO_NORMAL);
-    printf("           %s##%s ##########%s\n", color1, color2, CORTO_NORMAL);
+    printf("            %s##########%s\n", color1, UT_NORMAL);
+    printf("          %s##########%s ####%s\n", color1, color2, UT_NORMAL);
+    printf("        %s##########%s ########%s\n", color1, color2, UT_NORMAL);
+    printf("      %s##########%s   ##########%s\n", color1, color2, UT_NORMAL);
+    printf("    %s##########%s       ##########%s\n", color1, color2, UT_NORMAL);
+    printf("  %s##########%s           ##########%s\n", color1, color2, UT_NORMAL);
+    printf("   %s##########%s         ##########%s\n", color1, color2, UT_NORMAL);
+    printf("     %s##########%s     ##########%s\n", color1, color2, UT_NORMAL);
+    printf("       %s##########%s ##########%s\n", color1, color2, UT_NORMAL);
+    printf("         %s######%s ##########%s\n", color1, color2, UT_NORMAL);
+    printf("           %s##%s ##########%s\n", color1, color2, UT_NORMAL);
     printf("\n");
 }
 
@@ -149,7 +149,7 @@ static void printVersion(bool minor, bool patch) {
 static void printLongVersion(void) {
     printf("corto version %s (%s)\n  build %s\n",
         BAKE_VERSION,
-        CORTO_PLATFORM_STRING,
+        UT_PLATFORM_STRING,
         corto_get_build());
 }
 
@@ -159,19 +159,19 @@ static void set_verbosity(const char *verbosity) {
     }
 
     if (!stricmp(verbosity, "DEBUG")) {
-        corto_log_verbositySet(CORTO_DEBUG);
+        ut_log_verbositySet(UT_DEBUG);
     } else if (!stricmp(verbosity, "TRACE")) {
-        corto_log_verbositySet(CORTO_TRACE);
+        ut_log_verbositySet(UT_TRACE);
     } else if (!stricmp(verbosity, "OK")) {
-        corto_log_verbositySet(CORTO_OK);
+        ut_log_verbositySet(UT_OK);
     } else if (!stricmp(verbosity, "INFO")) {
-        corto_log_verbositySet(CORTO_INFO);
+        ut_log_verbositySet(UT_INFO);
     } else if (!stricmp(verbosity, "WARNING")) {
-        corto_log_verbositySet(CORTO_WARNING);
+        ut_log_verbositySet(UT_WARNING);
     } else if (!stricmp(verbosity, "ERROR")) {
-        corto_log_verbositySet(CORTO_ERROR);
+        ut_log_verbositySet(UT_ERROR);
     } else if (!stricmp(verbosity, "CRITICAL")) {
-        corto_log_verbositySet(CORTO_CRITICAL);
+        ut_log_verbositySet(UT_CRITICAL);
     } else {
         printf("not a valid verbosity level '%s'\n", verbosity);
     }
@@ -193,25 +193,25 @@ static int parseGenericArgs(int argc, char *argv[]) {
             PARSE_OPTION('h', "help", printUsage());
             PARSE_OPTION(0, "logo", printLogo());
             PARSE_OPTION(0, "name", appname = argv[i + 1]; i ++);
-            PARSE_OPTION(0, "config", corto_setenv("CORTO_CONFIG", argv[i + 1]); i ++);
+            PARSE_OPTION(0, "config", ut_setenv("CORTO_CONFIG", argv[i + 1]); i ++);
             PARSE_OPTION(0, "force-security", force_security = true);
             PARSE_OPTION(0, "username", username = argv[i + 1]; i ++);
             PARSE_OPTION(0, "password", password = argv[i + 1]; i ++);
             PARSE_OPTION(0, "cwd", cwd = argv[i + 1]; i ++);
-            PARSE_OPTION(0, "debug", corto_log_verbositySet(CORTO_DEBUG));
-            PARSE_OPTION(0, "trace", corto_log_verbositySet(CORTO_TRACE));
+            PARSE_OPTION(0, "debug", ut_log_verbositySet(UT_DEBUG));
+            PARSE_OPTION(0, "trace", ut_log_verbositySet(UT_TRACE));
             PARSE_OPTION('v', "verbosity", set_verbosity(argv[i + 1]); i ++);
-            PARSE_OPTION(0, "log-depth", corto_log_verbositySetDepth(atoi(argv[i + 1])); i ++);
-            PARSE_OPTION(0, "exit-on-exception", corto_log_setExceptionAction(CORTO_LOG_ON_EXCEPTION_EXIT));
-            PARSE_OPTION(0, "abort-on-exception", corto_log_setExceptionAction(CORTO_LOG_ON_EXCEPTION_ABORT));
+            PARSE_OPTION(0, "log-depth", ut_log_verbositySetDepth(atoi(argv[i + 1])); i ++);
+            PARSE_OPTION(0, "exit-on-exception", ut_log_setExceptionAction(UT_LOG_ON_EXCEPTION_EXIT));
+            PARSE_OPTION(0, "abort-on-exception", ut_log_setExceptionAction(UT_LOG_ON_EXCEPTION_ABORT));
             PARSE_OPTION(0, "profile", profile = true);
-            PARSE_OPTION(0, "mono", corto_log_useColors(false));
+            PARSE_OPTION(0, "mono", ut_log_useColors(false));
             PARSE_OPTION(0, "show-lines", showLines = true);
             PARSE_OPTION(0, "show-time", showTime = true);
             PARSE_OPTION(0, "show-delta", showDelta = true);
             PARSE_OPTION(0, "show-proc", showProc = true);
             PARSE_OPTION(0, "mute", mute = true);
-            PARSE_OPTION(0, "backtrace", CORTO_LOG_BACKTRACE = true);
+            PARSE_OPTION(0, "backtrace", UT_LOG_BACKTRACE = true);
             PARSE_OPTION(0, "trace-mem", CORTO_TRACE_MEM = true);
             PARSE_OPTION(0, "collect-cycles", CORTO_COLLECT_CYCLES = true);
             PARSE_OPTION(0, "collect-tls", CORTO_COLLECT_TLS = true);
@@ -238,31 +238,31 @@ int main(int argc, char *argv[]) {
     int last_parsed = parseGenericArgs(argc - 1, &argv[1]);
 
     if (showLines) {
-        char *fmt = corto_asprintf("%s %s", "%f:%l", corto_log_fmtGet());
-        corto_log_fmt(fmt);
+        char *fmt = ut_asprintf("%s %s", "%f:%l", ut_log_fmtGet ());
+        ut_log_fmt (fmt);
         free(fmt);
     }
 
     if (showTime) {
-        char *fmt = corto_asprintf("%s %s", "%T", corto_log_fmtGet());
-        corto_log_fmt(fmt);
+        char *fmt = ut_asprintf("%s %s", "%T", ut_log_fmtGet ());
+        ut_log_fmt (fmt);
         free(fmt);
     }
 
     if (showDelta) {
-        char *fmt = corto_asprintf("%s %s", "%d", corto_log_fmtGet());
-        corto_log_fmt(fmt);
+        char *fmt = ut_asprintf("%s %s", "%d", ut_log_fmtGet ());
+        ut_log_fmt (fmt);
         free(fmt);
     }
 
     if (showProc) {
-        char *fmt = corto_asprintf("%s %s", "%A", corto_log_fmtGet());
-        corto_log_fmt(fmt);
+        char *fmt = ut_asprintf("%s %s", "%A", ut_log_fmtGet ());
+        ut_log_fmt (fmt);
         free(fmt);
     }
 
     if (profile) {
-        corto_log_profile(true);
+        ut_log_profile(true);
     }
 
     /* If arguments are invalid, don't bother starting corto */
@@ -270,7 +270,7 @@ int main(int argc, char *argv[]) {
         char *cmd = "unknown";
 
         if (keep_alive) {
-            corto_setenv("CORTO_KEEP_ALIVE", "true");
+            ut_setenv("CORTO_KEEP_ALIVE", "true");
         }
 
         /* Start corto */
@@ -284,17 +284,17 @@ int main(int argc, char *argv[]) {
         /* After loading configuration, enable security */
         if (!corto_enable_security(true)) {
             if (force_security) {
-                corto_throw("failed to enable security (is a lock configured?)");
+                ut_throw("failed to enable security (is a lock configured?)");
                 goto error;
             }
         } else {
-            corto_info("security enabled");
+            ut_info("security enabled");
         }
 
         if (username) {
             const char *session_id = corto_login(username, password);
             if (!session_id) {
-                corto_throw("login failed");
+                ut_throw("login failed");
                 goto error;
             } else {
                 /* Immediately activate session */
@@ -311,14 +311,14 @@ int main(int argc, char *argv[]) {
             /* If load is set, only load a single package/file, and pass all
              * remaining arguments to this file */
             if (load) {
-                result = corto_use(cur_args[0], cur_count, cur_args);
+                result = ut_use(cur_args[0], cur_count, cur_args);
             } else {
                 /* Test if current argument is a command */
                 corto_id package;
                 sprintf(package, "driver/tool/%s", cur_args[0]);
                 const char *lib = NULL;
                 cmd = cur_args[0];
-                if (!strchr(package, '.') && package[0] != '/' && (lib = corto_locate(package, NULL, CORTO_LOCATE_LIB))) {
+                if (!strchr(package, '.') && package[0] != '/' && (lib = ut_locate(package, NULL, UT_LOCATE_LIB))) {
                     result = runCommand(cur_args[0], cur_count, cur_args);
                 } else {
                     /* If not a command, load subsequent arguments */
@@ -331,22 +331,22 @@ int main(int argc, char *argv[]) {
         } else if (argc == 1) {
             /* Run default command */
             if ((result = runCommand("default", 0, NULL))) {
-                corto_catch(); /* Clear previous error */
-                corto_throw("no default command configured");
+                ut_catch(); /* Clear previous error */
+                ut_throw("no default command configured");
             }
         }
 
         if (result) {
-            if (!corto_raised()) {
-                corto_throw("errors occurred while loading '%s'", cmd);
+            if (!ut_raised()) {
+                ut_throw("errors occurred while loading '%s'", cmd);
             }
-            corto_raise();
+            ut_raise();
         }
 
         if (keep_alive) {
-            corto_info("Keeping process alive, press CTRL-C to exit");
+            ut_info("Keeping process alive, press CTRL-C to exit");
             while (true) {
-                corto_sleep(1, 0);
+                ut_sleep(1, 0);
             }
         }
 
