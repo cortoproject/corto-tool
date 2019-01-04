@@ -315,10 +315,10 @@ int main(int argc, char *argv[]) {
             } else {
                 /* Test if current argument is a command */
                 corto_id package;
-                sprintf(package, "driver/tool/%s", cur_args[0]);
+                sprintf(package, "driver.tool.%s", cur_args[0]);
                 const char *lib = NULL;
                 cmd = cur_args[0];
-                if (!strchr(package, '.') && package[0] != '/' && (lib = ut_locate(package, NULL, UT_LOCATE_LIB))) {
+                if (!strchr(cmd, '.') && cmd[0] != '/' && (lib = ut_locate(package, NULL, UT_LOCATE_LIB))) {
                     result = runCommand(cur_args[0], cur_count, cur_args);
                 } else {
                     /* If not a command, load subsequent arguments */
