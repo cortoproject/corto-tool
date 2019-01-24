@@ -5,7 +5,6 @@
         "author": "Sander Mertens",
         "description": "Base executable for corto tools",
         "version": "1.0.0",
-        "use": ["corto"],
-        "managed": false
+        "use": ["corto"]
     }
 }
